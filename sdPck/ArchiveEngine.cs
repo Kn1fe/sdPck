@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Windows;
 
 namespace sdPck
 {
@@ -39,12 +38,12 @@ namespace sdPck
         private int _CompressionLevel = 9;
         public int CompressionLevel
         {
-            get => _CompressionLevel - 1;
+            get => _CompressionLevel;
             set
             {
-                if (_CompressionLevel + 1 != value)
+                if (_CompressionLevel != value)
                 {
-                    _CompressionLevel = value + 1;
+                    _CompressionLevel = value;
                     OnPropertyChanged("CompressionLevel");
                 }
             }
