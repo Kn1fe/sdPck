@@ -37,7 +37,10 @@ namespace sdPck
 
         private void Unpack(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
+            OpenFileDialog ofd = new OpenFileDialog()
+            {
+                Filter = "Angelica Engine|*.pck|All Files|*.*"
+            };
             if (ofd.ShowDialog() == true)
             {
                 archive.Unpack(ofd.FileName);
@@ -46,7 +49,14 @@ namespace sdPck
 
         private void UnpackCup(object sender, RoutedEventArgs e)
         {
-
+            OpenFileDialog ofd = new OpenFileDialog()
+            {
+                Filter = "Angelica Engine|*.cup|All Files|*.*"
+            };
+            if (ofd.ShowDialog() == true)
+            {
+                archive.UnpackCup(ofd.FileName);
+            }
         }
 
         private void Compress(object sender, RoutedEventArgs e)
