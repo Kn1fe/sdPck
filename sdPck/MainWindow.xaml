@@ -20,6 +20,7 @@
         <Controls:MetroProgressBar BorderThickness="1" BorderBrush="LightBlue" Value="{Binding ProgressPercent, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Maximum="100" HorizontalAlignment="Left" Height="20" Margin="10,89,0,0" VerticalAlignment="Top" Width="674"/>
         <Label Content="{Binding ProgressText, Mode=OneWay, StringFormat=\{0\}%, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Margin="10,44,0,0" VerticalAlignment="Top" Width="674" Height="40"/>
         <ComboBox SelectedIndex="{Binding CompressionLevel}" HorizontalAlignment="Left" Margin="534,10,0,0" VerticalAlignment="Top" Width="150">
+            <ComboBoxItem>0</ComboBoxItem>
             <ComboBoxItem>1</ComboBoxItem>
             <ComboBoxItem>2</ComboBoxItem>
             <ComboBoxItem>3</ComboBoxItem>
