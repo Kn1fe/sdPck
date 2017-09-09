@@ -1,0 +1,16 @@
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\bin\Debug\sdPck.exe.config
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\bin\Debug\sdPck.exe
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\bin\Debug\sdPck.pdb
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\MainWindow.g.cs
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\App.g.cs
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\sdPck_MarkupCompile.cache
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\sdPck_MarkupCompile.lref
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\App.baml
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\MainWindow.baml
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\sdPck.g.resources
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\sdPck.Properties.Resources.resources
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\sdPck.csproj.GenerateResource.Cache
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\sdPck.csproj.CoreCompileInputs.cache
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\sdPck.exe
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\sdPck.pdb
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\sdPck.csprojResolveAssemblyReference.cache

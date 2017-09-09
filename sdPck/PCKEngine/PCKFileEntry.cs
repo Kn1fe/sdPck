@@ -47,8 +47,10 @@ namespace sdPck
             bw.Write(Size);
             bw.Write(CompressedSize);
             bw.Write(0);
-            msb.Seek(0, SeekOrigin.Begin);
-			return PCKZlib.Compress(msb.ToArray(), CompressionLevel);
+            bw.BaseStream.Seek(0, SeekOrigin.Begin);
+            bw.Close();
+            byte[] compressed = PCKZlib.Compress(buffer, CompressionLevel);
+            return compressed.Length < 276 ? compressed : buffer;
 		}
 	}
 }

@@ -15,10 +15,12 @@ namespace sdPck
         public MainWindow()
         {
             InitializeComponent();
+            archive.CloseOnFinish += Archive_CloseOnFinish;
             startup_param = ((App)Application.Current).startup_param;
             DataContext = archive;
             if (startup_param?.Length > 0)
             {
+                CloseAfterWork.IsChecked = true;
                 if (File.Exists(startup_param[0]))
                 {
                     if (Path.GetExtension(startup_param[0]) == ".cup")
@@ -33,6 +35,21 @@ namespace sdPck
                 if (Directory.Exists(startup_param[0]))
                     archive.Compress(startup_param[0]);
             }
+        }
+
+        private void Archive_CloseOnFinish()
+        {
+            Dispatcher.BeginInvoke((Action)(() =>
+            {
+                if (CloseAfterWork.IsChecked == true)
+                    Close();
+            }));
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            Environment.Exit(0);
+            base.OnClosed(e);
         }
 
         private void Unpack(object sender, RoutedEventArgs e)
@@ -91,11 +108,11 @@ namespace sdPck
                 {
                     key.SetValue(string.Empty, $"sdPck", RegistryValueKind.String);
                 }
+                // CUP
                 using (var key = Registry.ClassesRoot.CreateSubKey(".cup"))
                 {
                     key.SetValue(string.Empty, $"sdPck", RegistryValueKind.String);
                 }
-                // CUP
                 using (var key = Registry.ClassesRoot.CreateSubKey("sdPck"))
                 {
                     key.SetValue(string.Empty, "Archive manager for Angelica Engine by Wanmei");
@@ -109,7 +126,21 @@ namespace sdPck
             catch (Exception ex)
             {
                 MessageBox.Show("Для изменения реестра нужно запустить программу от имени администратора");
-                MessageBox.Show($"{ex.Message}\n\n{ex.Source}\n\n{ex.StackTrace}");
+            }
+        }
+        private void RegeditDelete(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Directory
+                Registry.ClassesRoot.DeleteSubKeyTree(@"Directory\shell\sd_pck", false);
+                Registry.ClassesRoot.DeleteSubKeyTree(".pck", false);
+                Registry.ClassesRoot.DeleteSubKeyTree(".cup", false);
+                Registry.ClassesRoot.DeleteSubKeyTree("sdPck", false);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Для изменения реестра нужно запустить программу от имени администратора");
             }
         }
     }

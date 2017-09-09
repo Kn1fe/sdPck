@@ -27,7 +27,7 @@ namespace sdPck
 			ZOutputStream zos = new ZOutputStream(ms, CompressionLevel);
 			CopyStream(new MemoryStream(bytes), zos, bytes.Length);
 			zos.finish();
-			return ms.ToArray();
+			return ms.ToArray().Length < bytes.Length ? ms.ToArray() : bytes;
 		}
 
 		public static void CopyStream(Stream input, Stream output, int Size)

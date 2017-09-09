@@ -4,17 +4,17 @@
 winexe
 C#
 .cs
-C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Release\
 sdPck
 none
 false
-DEBUG;TRACE
+TRACE
 C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\App.xaml
 11151548125
 
-12768406153
-17-1371626096
+11-2143896761
+161841821513
 MainWindow.xaml;
 
-True
+False
 

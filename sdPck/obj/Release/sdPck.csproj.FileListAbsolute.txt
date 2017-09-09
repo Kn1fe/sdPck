@@ -1,0 +1,16 @@
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\bin\Release\sdPck.exe.config
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\bin\Release\sdPck.exe
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\bin\Release\sdPck.pdb
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Release\MainWindow.g.cs
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Release\App.g.cs
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Release\sdPck_MarkupCompile.cache
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Release\sdPck_MarkupCompile.lref
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Release\App.baml
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Release\MainWindow.baml
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Release\sdPck.g.resources
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Release\sdPck.Properties.Resources.resources
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Release\sdPck.csproj.GenerateResource.Cache
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Release\sdPck.exe
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Release\sdPck.pdb
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Release\sdPck.csprojResolveAssemblyReference.cache
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Release\sdPck.csproj.CoreCompileInputs.cache
