@@ -14,3 +14,7 @@ C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\sdPck
 C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\sdPck.exe
 C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\sdPck.pdb
 C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\sdPck.csprojResolveAssemblyReference.cache
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\bin\Debug\ru\sdPck.resources.dll
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\sdPck.Localization.Lang.resources
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\sdPck.Localization.Lang.ru.resources
+C:\Users\kn1fe\Documents\Visual Studio 2017\Projects\sdPck\sdPck\obj\Debug\ru\sdPck.resources.dll

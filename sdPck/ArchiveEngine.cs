@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Amib.Threading;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows;
+using WPFLocalizeExtension.Extensions;
 
 namespace sdPck
 {
@@ -15,6 +17,8 @@ namespace sdPck
     {
         public event CloseAfterFinish CloseOnFinish;
 
+        const int ProcessorsFactor = 8;
+        private SmartThreadPool threadPool = new SmartThreadPool(30000, Environment.ProcessorCount * ProcessorsFactor);
         private string _ProgressText = "";
         public string ProgressText
         {
@@ -53,10 +57,28 @@ namespace sdPck
                 }
             }
         }
+        private System.Timers.Timer timers = new System.Timers.Timer(7000);
+        private CountdownEvent events = new CountdownEvent(0);
+
+        public ArchiveEngine()
+        {
+            timers.Elapsed += (a, b) =>
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            };
+            timers.Start();
+        }
+
+        public int GetFilesCount(PCKStream stream)
+        {
+            stream.Seek(-8, SeekOrigin.End);
+            return stream.ReadInt32();
+        }
 
         public PCKFileEntry[] ReadFileTable(PCKStream stream)
         {
-            ProgressText = "Чтение файловой таблицы";
+            ProgressText = LocExtension.GetLocalizedValue<string>("ReadingFileTable");
             stream.Seek(-8, SeekOrigin.End);
             int FilesCount = stream.ReadInt32();
             stream.Seek(-272, SeekOrigin.End);
@@ -139,11 +161,12 @@ namespace sdPck
             string dir = $"{path}.files";
             if (Directory.Exists(dir))
             {
-                ProgressText = "Удаляем существующую папку";
+                ProgressText = LocExtension.GetLocalizedValue<string>("RemoveExitstsDirectory");
                 Directory.Delete(dir, true);
             }
             Directory.CreateDirectory(dir);
             PCKStream stream = new PCKStream(path);
+            events = new CountdownEvent(GetFilesCount(stream));
             IEnumerator<PCKFileEntry> enumerator = YieldReadFileTable(stream).GetEnumerator();
             while (enumerator.MoveNext())
             {
@@ -152,13 +175,24 @@ namespace sdPck
                 {
                     Directory.CreateDirectory(p);
                 }
-                ProgressText = $"Распаковка {ProgressValue}/{ProgressMax}: {enumerator.Current.Path}";
-                File.WriteAllBytes(Path.Combine(dir, enumerator.Current.Path), ReadFile(stream, enumerator.Current));
+                ProgressText = $"{LocExtension.GetLocalizedValue<string>("Unpacking")} {ProgressValue}/{ProgressMax}: {enumerator.Current.Path}";
+                stream.Seek(enumerator.Current.Offset, SeekOrigin.Begin);
+                byte[] file = stream.ReadBytes(enumerator.Current.CompressedSize);
+                threadPool.QueueWorkItem(x => {
+                    byte[] buffer = (x as object[])[0] as byte[];
+                    PCKFileEntry entry = (x as object[])[1] as PCKFileEntry;
+                    File.WriteAllBytes(Path.Combine(dir, entry.Path), buffer.Length < entry.Size ? PCKZlib.Decompress(buffer, entry.Size) : buffer);
+                    events.Signal();
+                }, new object[] { file, enumerator.Current });
+                while (threadPool.CurrentWorkItemsCount > Environment.ProcessorCount * ProcessorsFactor)
+                    Thread.Sleep(100);
                 ++ProgressValue;
             }
+            ProgressText = LocExtension.GetLocalizedValue<string>("WaitThreads");
+            events.Wait();
             stream.Dispose();
             ProgressValue = 0;
-            ProgressText = "Архив успешно распакован";
+            ProgressText = LocExtension.GetLocalizedValue<string>("Ready");
             CloseOnFinish?.Invoke();
         }
 
@@ -169,7 +203,7 @@ namespace sdPck
                 File.Delete(pck);
             if (File.Exists(pck.Replace(".pck", ".pkx")))
                 File.Delete(pck.Replace(".pck", ".pkx"));
-            ProgressText = "Получаем список файлов";
+            ProgressText = LocExtension.GetLocalizedValue<string>("FileList");
             string[] files = Directory.GetFiles(dir, "*", SearchOption.AllDirectories);
             PCKStream stream = new PCKStream(pck);
             stream.WriteInt32(stream.key.FSIG_1);
@@ -177,10 +211,11 @@ namespace sdPck
             stream.WriteInt32(stream.key.FSIG_2);
             ProgressMax = files.Length;
             MemoryStream FileTable = new MemoryStream();
+            events = new CountdownEvent(files.Length);
             for (ProgressValue = 0; ProgressValue < ProgressMax; ++ProgressValue)
             {
                 string file = files[ProgressValue].Replace(dir, "").Replace("/", "\\").Remove(0, 1);
-                ProgressText = $"Запаковка {ProgressValue}/{ProgressMax}: {file}";
+                ProgressText = $"{LocExtension.GetLocalizedValue<string>("Compressing")} {ProgressValue}/{ProgressMax}: {file}";
                 byte[] decompressed = File.ReadAllBytes(Path.Combine(dir, files[ProgressValue]));
                 byte[] compressed = PCKZlib.Compress(decompressed, CompressionLevel);
                 var entry = new PCKFileEntry()
@@ -191,11 +226,19 @@ namespace sdPck
                     CompressedSize = compressed.Length
                 };
                 stream.WriteBytes(compressed);
-                byte[] buffer = entry.Write(CompressionLevel);
-                FileTable.Write(BitConverter.GetBytes(buffer.Length ^ stream.key.KEY_1), 0, 4);
-                FileTable.Write(BitConverter.GetBytes(buffer.Length ^ stream.key.KEY_2), 0, 4);
-                FileTable.Write(buffer, 0, buffer.Length);
+                threadPool.QueueWorkItem(x => {
+                    PCKFileEntry e = x as PCKFileEntry;
+                    byte[] buffer = e.Write(CompressionLevel);
+                    lock (FileTable)
+                    {
+                        FileTable.Write(BitConverter.GetBytes(buffer.Length ^ stream.key.KEY_1), 0, 4);
+                        FileTable.Write(BitConverter.GetBytes(buffer.Length ^ stream.key.KEY_2), 0, 4);
+                        FileTable.Write(buffer, 0, buffer.Length);
+                    }
+                    events.Signal();
+                }, entry);
             }
+            events.Wait();
             long FileTableOffset = stream.Position;
             stream.WriteBytes(FileTable.ToArray());
             stream.WriteInt32(stream.key.ASIG_1);//4
@@ -214,7 +257,7 @@ namespace sdPck
             stream.WriteUInt32((uint)stream.GetLenght());
             stream.Dispose();
             ProgressValue = 0;
-            ProgressText = "Архив успешно запакован";
+            ProgressText = LocExtension.GetLocalizedValue<string>("Ready");
             CloseOnFinish?.Invoke();
         }
 
@@ -227,7 +270,7 @@ namespace sdPck
             PCKStream stream = new PCKStream(path);
             var files = ReadFileTable(stream);
             PCKFileEntry[] x_files = files.Where(x => x.Path.EndsWith(".inc")).ToArray();
-            ProgressText =  $"Парсим X-V.inc файлы: {x_files.Length}";
+            ProgressText = $"{LocExtension.GetLocalizedValue<string>("ParseX")}: {x_files.Length}";
             List<string> files_path = new List<string>();
             foreach (PCKFileEntry entry in x_files)
             {
@@ -236,7 +279,7 @@ namespace sdPck
                 while (!sr.EndOfStream)
                 {
                     string line = sr.ReadLine();
-                    if (line.StartsWith("!") || line.StartsWith("+"))
+                    if ((line.StartsWith("!") || line.StartsWith("+")) && line.Contains(" "))
                     {
                         string file_path = line.Split(' ')[1].Replace("/", "\\");
                         if (file_path.StartsWith("\\"))
@@ -252,25 +295,35 @@ namespace sdPck
                 }
             }
             ProgressMax = files.Length;
+            events = new CountdownEvent(files.Length);
             foreach (PCKFileEntry entry in files)
             {
                 var p = files_path.Where(x => entry.Path.ToLower().Contains(x.ToLower())).ToList();
                 if (p.Count > 0)
                 {
-                    BinaryReader br = new BinaryReader(new MemoryStream(ReadFile(stream, entry)));
-                    int size = br.ReadInt32();
-                    byte[] bytes = PCKZlib.Decompress(br.ReadBytes(entry.Size - 4), size);
-                    string file_path = ParseBase64Path(dir, p.First());
-                    ProgressText = $"Распаковка {ProgressValue}/{ProgressMax}: {file_path}";
-                    if (!Directory.Exists(Path.GetDirectoryName(file_path)))
-                        Directory.CreateDirectory(Path.GetDirectoryName(file_path));
-                    File.WriteAllBytes(file_path, bytes);
+                    ProgressText = $"{LocExtension.GetLocalizedValue<string>("Unpacking")} {ProgressValue}/{ProgressMax}: {ParseBase64Path(dir, p.First())}";
+                    byte[] file = ReadFile(stream, entry);
+                    threadPool.QueueWorkItem(x => {
+                        byte[] buffer = (x as object[])[0] as byte[];
+                        BinaryReader br = new BinaryReader(new MemoryStream(buffer));
+                        int size = br.ReadInt32();
+                        string file_path = ParseBase64Path(dir, (x as object[])[1].ToString());
+                        if (!Directory.Exists(Path.GetDirectoryName(file_path)))
+                            Directory.CreateDirectory(Path.GetDirectoryName(file_path));
+                        File.WriteAllBytes(file_path, PCKZlib.Decompress(br.ReadBytes(buffer.Length - 4), size));
+                        events.Signal();
+                    }, new object[] { file, p.First() });
+                    while (threadPool.CurrentWorkItemsCount > Environment.ProcessorCount * ProcessorsFactor)
+                        Thread.Sleep(100);
                 }
+                else
+                    events.Signal();
                 ++ProgressValue;
             }
+            events.Wait();
             stream.Dispose();
             ProgressValue = 0;
-            ProgressText = "Архив успешно распакован";
+            ProgressText = LocExtension.GetLocalizedValue<string>("Ready");
             CloseOnFinish?.Invoke();
         }
 

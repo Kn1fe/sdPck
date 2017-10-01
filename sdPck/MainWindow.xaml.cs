@@ -3,6 +3,9 @@ using Microsoft.Win32;
 using System;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
+using WPFLocalizeExtension.Engine;
+using WPFLocalizeExtension.Extensions;
 using WinForms = System.Windows.Forms;
 
 namespace sdPck
@@ -15,6 +18,16 @@ namespace sdPck
         public MainWindow()
         {
             InitializeComponent();
+            switch (Properties.Settings.Default.Language)
+            {
+                case 1:
+                    LocalizeDictionary.Instance.SetCultureCommand.Execute("en");
+                    break;
+
+                case 2:
+                    LocalizeDictionary.Instance.SetCultureCommand.Execute("ru");
+                    break;
+            }
             archive.CloseOnFinish += Archive_CloseOnFinish;
             startup_param = ((App)Application.Current).startup_param;
             DataContext = archive;
@@ -34,6 +47,22 @@ namespace sdPck
                 }
                 if (Directory.Exists(startup_param[0]))
                     archive.Compress(startup_param[0]);
+            }
+        }
+
+        private void SetLang(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string lang = (sender as MenuItem).Name.Remove(0, 6);
+                int id = int.Parse((sender as MenuItem).Name.Remove(0, 4).Remove(1));
+                Properties.Settings.Default.Language = id;
+                Properties.Settings.Default.Save();
+                LocalizeDictionary.Instance.SetCultureCommand.Execute(lang);
+            }
+            catch
+            {
+                MessageBox.Show("Error in changing language");
             }
         }
 
@@ -97,7 +126,7 @@ namespace sdPck
                 using (var key = Registry.ClassesRoot.CreateSubKey(@"Directory\shell").CreateSubKey("sd_pck", RegistryKeyPermissionCheck.ReadWriteSubTree))
                 {
                     key.SetValue("Icon", $"{System.Reflection.Assembly.GetExecutingAssembly().Location},0");
-                    key.SetValue("MUIVerb", "[sdPCK] Запаковать", RegistryValueKind.String);
+                    key.SetValue("MUIVerb", LocExtension.GetLocalizedValue<string>("ContextCompress"), RegistryValueKind.String);
                     using (var key1 = key.CreateSubKey("command"))
                     {
                         key1.SetValue(string.Empty, $"{System.Reflection.Assembly.GetExecutingAssembly().Location} \"%1\"", RegistryValueKind.ExpandString);
@@ -123,7 +152,7 @@ namespace sdPck
                     key.CreateSubKey(@"Shell\Open\Command").SetValue(string.Empty, $"{System.Reflection.Assembly.GetExecutingAssembly().Location} \"%1\"");
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 MessageBox.Show("Для изменения реестра нужно запустить программу от имени администратора");
             }
@@ -138,7 +167,7 @@ namespace sdPck
                 Registry.ClassesRoot.DeleteSubKeyTree(".cup", false);
                 Registry.ClassesRoot.DeleteSubKeyTree("sdPck", false);
             }
-            catch (Exception ex)
+            catch
             {
                 MessageBox.Show("Для изменения реестра нужно запустить программу от имени администратора");
             }
