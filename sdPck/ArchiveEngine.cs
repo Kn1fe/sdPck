@@ -271,7 +271,7 @@ namespace sdPck
             var files = ReadFileTable(stream);
             PCKFileEntry[] x_files = files.Where(x => x.Path.EndsWith(".inc")).ToArray();
             ProgressText = $"{LocExtension.GetLocalizedValue<string>("ParseX")}: {x_files.Length}";
-            List<string> files_path = new List<string>();
+            HashSet<string> files_path = new HashSet<string>();
             foreach (PCKFileEntry entry in x_files)
             {
                 StreamReader sr = new StreamReader(new MemoryStream(ReadFile(stream, entry)));
@@ -279,7 +279,7 @@ namespace sdPck
                 while (!sr.EndOfStream)
                 {
                     string line = sr.ReadLine();
-                    if ((line.StartsWith("!") || line.StartsWith("+")) && line.Contains(" "))
+                    if ((line.StartsWith("!") || line.StartsWith("+")))
                     {
                         string file_path = line.Split(' ')[1].Replace("/", "\\");
                         if (file_path.StartsWith("\\"))
@@ -294,30 +294,34 @@ namespace sdPck
                     }
                 }
             }
+            files = files.Where(x => x.Path.Contains("\\")).ToArray();
+            for (int i = 0; i < files.Length; ++i)
+            {
+                files[i].Path = $"\\{files[i].Path}";
+                var p = files_path.Where(x => files[i].Path.ToLower().Contains(x.ToLower())).ToList();
+                if (p.Count > 0)
+                    files[i].Path = files[i].Path.Replace(p.First().ToLower(), p.First());
+            }
             ProgressMax = files.Length;
             events = new CountdownEvent(files.Length);
             foreach (PCKFileEntry entry in files)
             {
-                var p = files_path.Where(x => entry.Path.ToLower().Contains(x.ToLower())).ToList();
-                if (p.Count > 0)
-                {
-                    ProgressText = $"{LocExtension.GetLocalizedValue<string>("Unpacking")} {ProgressValue}/{ProgressMax}: {ParseBase64Path(dir, p.First())}";
-                    byte[] file = ReadFile(stream, entry);
-                    threadPool.QueueWorkItem(x => {
-                        byte[] buffer = (x as object[])[0] as byte[];
-                        BinaryReader br = new BinaryReader(new MemoryStream(buffer));
-                        int size = br.ReadInt32();
-                        string file_path = ParseBase64Path(dir, (x as object[])[1].ToString());
-                        if (!Directory.Exists(Path.GetDirectoryName(file_path)))
-                            Directory.CreateDirectory(Path.GetDirectoryName(file_path));
-                        File.WriteAllBytes(file_path, PCKZlib.Decompress(br.ReadBytes(buffer.Length - 4), size));
-                        events.Signal();
-                    }, new object[] { file, p.First() });
-                    while (threadPool.CurrentWorkItemsCount > Environment.ProcessorCount * ProcessorsFactor)
-                        Thread.Sleep(100);
-                }
-                else
+                string file_path = ParseBase64Path(dir, entry.Path);
+                ProgressText = $"{LocExtension.GetLocalizedValue<string>("Unpacking")} {ProgressValue}/{ProgressMax}: {file_path}";
+                byte[] file = ReadFile(stream, entry);
+                threadPool.QueueWorkItem(x => {
+                    byte[] buffer = (x as object[])[0] as byte[];
+                    string fp = (x as object[])[1] as string;
+                    if (!Directory.Exists(Path.GetDirectoryName(fp)))
+                        Directory.CreateDirectory(Path.GetDirectoryName(fp));
+                    BinaryReader br = new BinaryReader(new MemoryStream(buffer));
+                    int size = br.ReadInt32();
+                    File.WriteAllBytes(fp, PCKZlib.Decompress(br.ReadBytes(buffer.Length - 4), size));
+                    br.Close();
                     events.Signal();
+                }, new object[] { file, file_path });
+                while (threadPool.CurrentWorkItemsCount > Environment.ProcessorCount * ProcessorsFactor)
+                    Thread.Sleep(100);
                 ++ProgressValue;
             }
             events.Wait();
@@ -335,7 +339,7 @@ namespace sdPck
             {
                 try
                 {
-                    output += $"\\{Encoding.GetEncoding(936).GetString(Convert.FromBase64String(str))}";
+                    output += $"\\{Encoding.UTF8.GetString(Convert.FromBase64String(str))}";
                 }
                 catch
                 {
